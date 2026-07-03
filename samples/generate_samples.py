@@ -62,7 +62,8 @@ def gen_xlsx() -> None:
     ws.append(["01", 100, "Đạt"])
     ws.append(["02", 200, "Đạt"])
     ws.append(["03", 300, "Vượt"])
-    ws.append(["Tổng", 600, "N/A"])
+    # "Không áp dụng" thay vì "N/A": pandas coi literal "N/A" là giá trị khuyết -> NaN
+    ws.append(["Tổng", 600, "Không áp dụng"])
     wb.save(SAMPLES_DIR / "xlsx-good.xlsx")
 
     # bad: tiêu đề trang trí + merge, bảng lệch khỏi A1, ô bỏ trống,

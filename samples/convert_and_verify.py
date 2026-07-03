@@ -39,13 +39,10 @@ def verify_xlsx() -> None:
     bad = convert("xlsx-bad.xlsx")
     # XLSX-07: tên sheet thành heading ##
     assert "## DoanhThu2026" in good, "good: tên sheet phải thành heading"
-    # XLSX-08 (phát hiện thực nghiệm): MarkItDown đọc xlsx qua pandas, và pandas coi
-    # chuỗi literal "N/A" là giá trị khuyết mặc định (cùng nhóm với NA/NULL/null/None/
-    # n/a/nan/NaN/#N/A...) nên tự ý biến nó thành NaN dù ô KHÔNG hề trống. Vì vậy bảng
-    # "good" (sạch, không merge, không ô trống) vẫn có đúng 1 NaN — không phải do lỗi
-    # convention mà do giá trị "N/A" ta cố tình đặt ở dòng Tổng. Assert gốc "NaN not in
-    # good" sai với hành vi thật nên đổi thành: NaN chỉ xuất hiện đúng 1 lần (ô đó).
-    assert good.count("NaN") == 1, "good: chỉ ô 'N/A' (dòng Tổng) mới thành NaN do pandas coi N/A là giá trị khuyết"
+    # XLSX-08: bảng sạch không có NaN. Lưu ý (phát hiện thực nghiệm): pandas coi các
+    # literal "N/A"/"NA"/"NULL"/"None"/"n/a"/"nan"... là giá trị khuyết -> NaN dù ô
+    # KHÔNG trống, nên file good phải dùng "Không áp dụng" thay vì "N/A" ở dòng Tổng.
+    assert "NaN" not in good, "good: không được xuất hiện NaN"
     assert "Tổng" in good and "600" in good, "good: dòng tổng ghi giá trị phải giữ nguyên"
     # XLSX-03/08: merge + ô trống sinh chữ NaN trong output
     assert "NaN" in bad, "bad: merge cell và ô trống phải sinh NaN"
