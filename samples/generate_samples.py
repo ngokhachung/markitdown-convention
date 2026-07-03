@@ -50,10 +50,47 @@ def gen_docx() -> None:
     doc.save(SAMPLES_DIR / "docx-bad.docx")
 
 
+def gen_xlsx() -> None:
+    from openpyxl import Workbook
+
+    # good: 1 sheet = 1 bảng từ A1, dòng 1 là header, không merge,
+    # dòng Tổng ghi GIÁ TRỊ chứ không ghi công thức
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "DoanhThu2026"
+    ws.append(["Tháng", "Doanh thu", "Trạng thái"])
+    ws.append(["01", 100, "Đạt"])
+    ws.append(["02", 200, "Đạt"])
+    ws.append(["03", 300, "Vượt"])
+    ws.append(["Tổng", 600, "N/A"])
+    wb.save(SAMPLES_DIR / "xlsx-good.xlsx")
+
+    # bad: tiêu đề trang trí + merge, bảng lệch khỏi A1, ô bỏ trống,
+    # công thức chưa từng được Excel tính (không cached value), sheet ẩn
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Sheet1"
+    ws["A1"] = "BÁO CÁO DOANH THU NĂM 2026"
+    ws.merge_cells("A1:C1")
+    ws["A3"] = "Tháng"
+    ws["B3"] = "Doanh thu"
+    ws["A4"] = "01"
+    ws["B4"] = 110
+    ws["A5"] = "02"          # B5 cố tình bỏ trống
+    ws["A6"] = "Gấp ba"
+    ws["B6"] = "=B4*3"       # openpyxl không tính -> không có cached value
+    hidden = wb.create_sheet("NhapLieuTam")
+    hidden["A1"] = "dữ liệu nháp không nên lộ ra"
+    hidden.sheet_state = "hidden"
+    wb.save(SAMPLES_DIR / "xlsx-bad.xlsx")
+
+
 def main() -> None:
     (SAMPLES_DIR / "output").mkdir(exist_ok=True)
     gen_docx()
     print("generated: docx")
+    gen_xlsx()
+    print("generated: xlsx")
 
 
 if __name__ == "__main__":

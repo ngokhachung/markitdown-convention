@@ -34,9 +34,35 @@ def verify_docx() -> None:
     print("PASS docx")
 
 
+def verify_xlsx() -> None:
+    good = convert("xlsx-good.xlsx")
+    bad = convert("xlsx-bad.xlsx")
+    # XLSX-07: tên sheet thành heading ##
+    assert "## DoanhThu2026" in good, "good: tên sheet phải thành heading"
+    # XLSX-08 (phát hiện thực nghiệm): MarkItDown đọc xlsx qua pandas, và pandas coi
+    # chuỗi literal "N/A" là giá trị khuyết mặc định (cùng nhóm với NA/NULL/null/None/
+    # n/a/nan/NaN/#N/A...) nên tự ý biến nó thành NaN dù ô KHÔNG hề trống. Vì vậy bảng
+    # "good" (sạch, không merge, không ô trống) vẫn có đúng 1 NaN — không phải do lỗi
+    # convention mà do giá trị "N/A" ta cố tình đặt ở dòng Tổng. Assert gốc "NaN not in
+    # good" sai với hành vi thật nên đổi thành: NaN chỉ xuất hiện đúng 1 lần (ô đó).
+    assert good.count("NaN") == 1, "good: chỉ ô 'N/A' (dòng Tổng) mới thành NaN do pandas coi N/A là giá trị khuyết"
+    assert "Tổng" in good and "600" in good, "good: dòng tổng ghi giá trị phải giữ nguyên"
+    # XLSX-03/08: merge + ô trống sinh chữ NaN trong output
+    assert "NaN" in bad, "bad: merge cell và ô trống phải sinh NaN"
+    # XLSX-01/02: tiêu đề trang trí chiếm dòng header -> cột Unnamed
+    assert "Unnamed" in bad, "bad: header giả phải sinh cột Unnamed"
+    # XLSX-04: công thức không cached value -> kết quả biến mất
+    assert "330" not in bad, "bad: 110*3=330 không được xuất hiện (không cached value)"
+    assert "=B4" not in bad, "bad: chuỗi công thức cũng không được xuất hiện"
+    # XLSX-06: sheet ẩn vẫn bị convert
+    assert "nháp" in bad, "bad: nội dung sheet ẩn vẫn lộ ra output"
+    print("PASS xlsx")
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(exist_ok=True)
     verify_docx()
+    verify_xlsx()
     print("ALL PASS")
 
 
