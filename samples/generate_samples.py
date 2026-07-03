@@ -15,6 +15,8 @@ PNG_1PX = base64.b64decode(
 def gen_docx() -> None:
     from docx import Document
     from docx.shared import Inches, Pt
+    from docx.oxml.ns import qn
+    from docx.oxml import OxmlElement
 
     # good: heading dùng Style, bảng sạch có header, ảnh có alt text
     doc = Document()
@@ -26,6 +28,14 @@ def gen_docx() -> None:
     for row, (c1, c2) in zip(table.rows, data):
         row.cells[0].text = c1
         row.cells[1].text = c2
+    # Đánh dấu dòng đầu là "Repeat as header row at the top of each page"
+    # (Table Properties -> Row) -> mammoth map dòng này thành <th>, ra header
+    # Markdown thật.
+    tr = table.rows[0]._tr
+    trPr = tr.get_or_add_trPr()
+    tbl_header = OxmlElement("w:tblHeader")
+    tbl_header.set(qn("w:val"), "true")
+    trPr.append(tbl_header)
     pic = doc.add_picture(io.BytesIO(PNG_1PX), width=Inches(1))
     pic._inline.docPr.set(
         "descr", "Biểu đồ cột doanh thu theo tháng: tháng 1 đạt 100, tháng 2 đạt 200"
@@ -75,8 +85,10 @@ def gen_xlsx() -> None:
     ws.merge_cells("A1:C1")
     ws["A3"] = "Tháng"
     ws["B3"] = "Doanh thu"
+    ws["C3"] = "Ghi chú"
     ws["A4"] = "01"
     ws["B4"] = 110
+    ws["C4"] = "N/A"         # literal "N/A" -> pandas coi là giá trị khuyết -> NaN
     ws["A5"] = "02"          # B5 cố tình bỏ trống
     ws["A6"] = "Gấp ba"
     ws["B6"] = "=B4*3"       # openpyxl không tính -> không có cached value
@@ -130,7 +142,13 @@ def gen_pptx() -> None:
     box1.text_frame.text = "Bước 1: khảo sát khách hàng"
     title_box = slide.shapes.add_textbox(Inches(1), Inches(5), Inches(6), Inches(1))
     title_box.text_frame.text = "Kế hoạch quý 3"
-    slide.shapes.add_picture(io.BytesIO(PNG_1PX), Inches(6), Inches(5), width=Inches(1))
+    pic_bad = slide.shapes.add_picture(
+        io.BytesIO(PNG_1PX), Inches(6), Inches(5), width=Inches(1)
+    )
+    # python-pptx tự viết descr="image.png" khi add_picture từ stream — đó là
+    # artifact của python-pptx, KHÔNG phải hành vi MarkItDown. Xóa để mẫu phản
+    # ánh đúng trường hợp "ảnh không có alt text" (descr rỗng) mà convention mô tả.
+    pic_bad._element._nvXxPr.cNvPr.set("descr", "")
     prs.save(SAMPLES_DIR / "pptx-bad.pptx")
 
 

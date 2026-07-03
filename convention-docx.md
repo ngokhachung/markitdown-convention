@@ -23,20 +23,25 @@ trúc, pipeline RAG không chunk được theo section.
 ✅ **Đúng:** Bôi đen tiêu đề → Home → Styles → chọn "Heading 1/2/3"
 ❌ **Sai:** Bôi đen → tăng cỡ chữ 16pt → Bold
 
-### DOCX-02 — Bảng không merge cell, đúng 1 dòng header `[BẮT BUỘC]`
+### DOCX-02 — Bảng không merge cell, đánh dấu dòng đầu là header `[BẮT BUỘC]`
 
 **Tại sao:** bảng Markdown không biểu diễn được ô gộp (colspan/rowspan). Ô merge làm
-các dòng lệch cột — dữ liệu bị gán nhầm cột mà không có cảnh báo. Quan sát thực tế:
-bảng docx luôn render với một dòng header Markdown **rỗng** (mọi dòng của bảng docx,
-kể cả dòng định làm header, đều bị đẩy xuống phần thân bảng) — nhưng dòng đầu tiên
-vẫn nên là header ngữ nghĩa vì người đọc và LLM đều dựa vào vị trí đó để hiểu ý nghĩa
-các cột.
+các dòng lệch cột — dữ liệu bị gán nhầm cột mà không có cảnh báo. Quan sát thực tế về
+header: mammoth chỉ map dòng ra `<th>` (→ dòng header Markdown thật) nếu dòng đó được
+đánh dấu **"Repeat as header row at the top of each page"** (Word: bôi đen dòng 1 →
+Table Properties → Row → tick ô đó). **Không** đánh dấu, dòng đầu bị đẩy xuống thân
+bảng như mọi dòng khác và header Markdown ra **rỗng** (`|  |  |`), dù về mặt hình thức
+dòng đó vẫn trông giống header trong Word. Có đánh dấu, output có header Markdown thật
+(`| Tháng | Doanh thu |`).
 
-✅ **Đúng:** mỗi ô một giá trị; dòng đầu là tên cột; lặp lại giá trị thay vì merge dọc.
-❌ **Sai:** merge ô "Q1" ngang 3 cột; merge dọc ô "Miền Bắc" cho 4 dòng. Hậu quả quan
-sát được: ô merge ngang chỉ còn text ở cột đầu tiên, cột bị merge biến thành ô rỗng
-(Markdown không có colspan) — dòng bị lệch so với các dòng dữ liệu bên dưới, dễ khiến
-người đọc hiểu sai nội dung thuộc cột nào.
+✅ **Đúng:** mỗi ô một giá trị; dòng đầu là tên cột; lặp lại giá trị thay vì merge dọc;
+tick "Repeat as header row at the top of each page" cho dòng header (Table Properties
+→ Row).
+❌ **Sai:** merge ô "Q1" ngang 3 cột; merge dọc ô "Miền Bắc" cho 4 dòng; hoặc bỏ qua
+việc đánh dấu header row (dòng đầu vẫn ra được nhưng header Markdown thành rỗng). Hậu
+quả merge quan sát được: ô merge ngang chỉ còn text ở cột đầu tiên, cột bị merge biến
+thành ô rỗng (Markdown không có colspan) — dòng bị lệch so với các dòng dữ liệu bên
+dưới, dễ khiến người đọc hiểu sai nội dung thuộc cột nào.
 
 ### DOCX-03 — Mọi hình ảnh phải có alt text `[BẮT BUỘC]`
 
@@ -118,7 +123,7 @@ trợ (kể cả công thức trong đó), nhưng nội dung chính vẫn nên n
 | ID | Quy tắc | Mức |
 |---|---|---|
 | DOCX-01 | Tiêu đề dùng Heading Style | BẮT BUỘC |
-| DOCX-02 | Bảng không merge cell, 1 dòng header | BẮT BUỘC |
+| DOCX-02 | Bảng không merge cell, đánh dấu "Repeat as header row" | BẮT BUỘC |
 | DOCX-03 | Mọi ảnh có alt text mô tả đủ | BẮT BUỘC |
 | DOCX-04 | Thông tin quan trọng có bản chữ | BẮT BUỘC |
 | DOCX-05 | Công thức dùng Insert > Equation | BẮT BUỘC |

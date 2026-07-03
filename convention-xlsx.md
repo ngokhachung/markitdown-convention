@@ -81,13 +81,16 @@ bằng đúng những chuỗi tưởng chừng an toàn như `N/A`, `NA`, `NULL`
 không giải quyết được gì**: MarkItDown đọc xlsx qua `pandas`, và pandas mặc định coi các
 chuỗi literal này (cùng nhóm với `n/a`, `NaN`, `#N/A`, `null`...) là giá trị khuyết —
 tự động biến ô thành `NaN` y hệt một ô trống, **dù ô đó thực sự có nội dung**. Phát hiện
-thực nghiệm khi làm sample cho convention này: cột "Trạng thái" ghi literal `"N/A"` ở
-dòng "Tổng" vẫn ra `NaN` trong output dù ô không hề rỗng.
+thực nghiệm khi làm sample cho convention này: cột "Ghi chú" ghi literal `"N/A"` ở
+dòng "01" vẫn biến mất hoàn toàn và ra `NaN` trong output dù ô không hề rỗng (xem
+`samples/output/xlsx-bad.md`).
 
 ✅ **Đúng:** điền `0`, "Chưa có", hoặc "Không áp dụng" tùy ngữ nghĩa — xem
-`samples/output/xlsx-good.md`, dòng "Tổng" dùng "Không áp dụng" và bảng ra 0 `NaN`.
+`samples/output/xlsx-good.md`, dòng "Tổng" dùng "Không áp dụng" và output không còn
+`NaN` nào.
 ❌ **Sai:** điền ô bằng `N/A`, `NA`, `NULL`, `None`, hoặc `nan` để "cho khỏi trống" —
-pandas vẫn coi đây là giá trị khuyết và xuất ra `NaN` trong Markdown, y như để trống.
+pandas vẫn coi đây là giá trị khuyết và xuất ra `NaN` trong Markdown, y như để trống
+(xem cột "Ghi chú" trong `samples/output/xlsx-bad.md`).
 
 ### XLSX-09 — Hiểu rằng output là giá trị thô, không phải giá trị hiển thị `[NÊN]`
 

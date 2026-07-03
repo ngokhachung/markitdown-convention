@@ -26,17 +26,18 @@ chỉ là văn bản thường — mất ranh giới nội dung giữa các slid
 
 ### PPTX-02 — Alt text cho mọi hình ảnh `[BẮT BUỘC]`
 
-**Tại sao:** ảnh có alt text ra `![mô tả](tên-file)` — alt text là thứ duy nhất của
-ảnh sống sót, pipeline không bật LLM caption. Ảnh **không có** alt text cũng không
-biến mất lặng lẽ: MarkItDown chèn một placeholder chung cố định
-`![image.png](tên-file)`, dùng đúng chuỗi literal `"image.png"` bất kể định dạng ảnh
-thật (kể cả ảnh gốc là `.png`/`.jpg` khác). Đây là hành vi dễ gây hiểu lầm nhất trong
-ba định dạng Office: người đọc sau tưởng đây là tên file ảnh thật, trong khi đó chỉ là
-chuỗi giả không mô tả gì nội dung ảnh.
+**Tại sao:** ảnh có alt text sẽ ra `![mô tả](tên-file)` — alt text là thứ duy nhất
+của ảnh sống sót, pipeline không bật LLM caption. Ảnh **không có** alt text cũng
+không biến mất lặng lẽ, nhưng cũng không sinh ra tên file thật: MarkItDown đọc
+thuộc tính `descr` của shape; không có descr, alt ra **rỗng** — `![](tên-file)` —
+và `tên-file` không phải tên file ảnh gốc mà là tên shape trong PowerPoint (vd
+`Picture 4` → `Picture4.jpg`) được PowerPoint tự đặt, không mang ý nghĩa gì. Vì vậy
+ảnh không alt text để lại đúng một dấu vết trong output: cú pháp ảnh rỗng, không mô
+tả nội dung.
 
 ✅ **Đúng:** Right-click ảnh → Edit Alt Text → mô tả đầy đủ nội dung/ý nghĩa.
-❌ **Sai:** dán ảnh không alt text — output ra đúng `![image.png](Picture4.jpg)`, một
-placeholder chung vô nghĩa (xem `samples/output/pptx-bad.md`).
+❌ **Sai:** dán ảnh không alt text — output ra `![](Picture4.jpg)`, alt rỗng không mô
+tả gì nội dung ảnh (xem `samples/output/pptx-bad.md`).
 
 ### PPTX-03 — Cấm SmartArt `[BẮT BUỘC]`
 
@@ -64,17 +65,21 @@ bản đảo lộn (xem "Bước 2" đứng trước "Bước 1" trong `samples/
 được số liệu!). Loại phức tạp không hỗ trợ chỉ còn `[unsupported chart]`. Quan sát
 thực tế: chart hiện dưới heading `### Chart` kèm bảng Markdown chuẩn, và giá trị số
 bị ép về kiểu float — `100`/`200` nhập vào chart ra `100.0`/`200.0` trong bảng, không
-giữ định dạng số nguyên.
+giữ định dạng số nguyên. Nếu chart có đặt tiêu đề (chart title), heading sẽ thành
+`### Chart: <tiêu đề>` thay vì chỉ `### Chart` trơn — vì vậy đặt tên chart rõ nghĩa
+là đáng làm, nó cho RAG một mốc ngữ cảnh ngay trong heading.
 
-✅ **Đúng:** dùng chart cơ bản, đặt tên series/category rõ nghĩa; chấp nhận số liệu ra
-dạng thập phân có đuôi `.0`.
+✅ **Đúng:** dùng chart cơ bản, đặt tên series/category rõ nghĩa; đặt tiêu đề chart để
+heading output có ngữ cảnh (`### Chart: <tiêu đề>`); chấp nhận số liệu ra dạng thập
+phân có đuôi `.0`.
 ❌ **Sai:** chart combo/3D lạ — mất toàn bộ số liệu.
 
 ### PPTX-07 — Dùng speaker notes cho nội dung chi tiết `[NÊN]`
 
-**Tại sao:** notes được convert thành heading cố định `### Notes:` ở cuối mỗi slide —
-chuỗi này do MarkItDown hardcode, luôn xuất hiện y hệt bất kể nội dung notes là gì.
-Đây là nơi tốt nhất để viết đoạn văn đầy đủ ngữ cảnh cho RAG mà không làm rối slide.
+**Tại sao:** khi slide có notes, notes được convert thành heading cố định
+`### Notes:` ở cuối slide đó — chuỗi này do MarkItDown hardcode, luôn xuất hiện y hệt
+bất kể nội dung notes là gì (slide không có notes thì không có heading này). Đây là
+nơi tốt nhất để viết đoạn văn đầy đủ ngữ cảnh cho RAG mà không làm rối slide.
 
 ✅ **Đúng:** slide để ý chính ngắn gọn; diễn giải đầy đủ viết vào Notes; không cần tự
 gõ thêm chữ "Notes" trong nội dung notes vì heading đã tự sinh.

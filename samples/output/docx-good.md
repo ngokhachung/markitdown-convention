@@ -4,9 +4,8 @@
 
 Doanh thu quý 1 đạt 600 triệu, tăng 20% so với cùng kỳ.
 
-|  |  |
-| --- | --- |
 | Tháng | Doanh thu |
+| --- | --- |
 | 01 | 100 |
 | 02 | 200 |
 

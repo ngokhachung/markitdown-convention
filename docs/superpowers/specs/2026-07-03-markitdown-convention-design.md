@@ -122,7 +122,11 @@ Tiêu chí đạt: output Markdown của từng cặp good/bad thể hiện đú
 - Hướng dẫn cài đặt/vận hành pipeline MarkItDown cho production.
 - Convention cho PDF và các định dạng khác.
 - Quy trình review/enforce trong team (chỉ cung cấp checklist, không quy định quy trình).
-- Bật LLM caption (`llm_client`) — nếu sau này bật, chỉ cần nới lỏng DOCX-03/PPTX-02, có ghi chú trong README.
+- Bật LLM caption (`llm_client`) — nếu sau này bật, việc nới lỏng chỉ áp dụng cho
+  PPTX-02 (converter pptx của MarkItDown có gọi hook `llm_client`/`llm_caption` khi
+  ảnh không có alt text). DOCX-03 vẫn bắt buộc: pipeline docx đi qua `mammoth`, không
+  có hook LLM caption nào trong đường xử lý đó, nên ảnh docx không alt text vẫn mất
+  hoàn toàn bất kể pipeline có bật `llm_client` hay không. Đã có ghi chú trong README.
 
 ## 6. Quyết định đã chốt
 

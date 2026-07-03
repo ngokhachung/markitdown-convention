@@ -16,7 +16,9 @@ _md = MarkItDown()
 def convert(name: str) -> str:
     """Convert samples/<name> -> samples/output/<stem>.md, trả về nội dung Markdown."""
     text = _md.convert(str(SAMPLES_DIR / name)).text_content
-    (OUTPUT_DIR / (Path(name).stem + ".md")).write_text(text, encoding="utf-8")
+    (OUTPUT_DIR / (Path(name).stem + ".md")).write_text(
+        text, encoding="utf-8", newline="\n"
+    )
     return text
 
 
@@ -31,6 +33,15 @@ def verify_docx() -> None:
     # DOCX-03: alt text là thứ duy nhất của ảnh sống sót
     assert "Biểu đồ" in good, "good: alt text phải xuất hiện trong output"
     assert "Biểu đồ" not in bad, "bad: không alt text thì không có mô tả ảnh"
+    # DOCX-02: dòng có w:tblHeader (Table Properties -> Row -> "Repeat as header
+    # row") được mammoth map thành <th> -> ra header Markdown thật, không rỗng.
+    assert "| Tháng | Doanh thu |\n| --- | --- |" in good, (
+        "good: dòng có tblHeader phải ra header Markdown thật"
+    )
+    # bad: không set tblHeader -> dòng đầu vẫn bị đẩy xuống thân bảng, header rỗng
+    assert "|  |  |\n| --- | --- |" in bad, (
+        "bad: không tblHeader thì header Markdown vẫn rỗng"
+    )
     print("PASS docx")
 
 
@@ -53,6 +64,9 @@ def verify_xlsx() -> None:
     assert "=B4" not in bad, "bad: chuỗi công thức cũng không được xuất hiện"
     # XLSX-06: sheet ẩn vẫn bị convert
     assert "nháp" in bad, "bad: nội dung sheet ẩn vẫn lộ ra output"
+    # XLSX-08: literal "N/A" (cột "Ghi chú") bị pandas coi là giá trị khuyết ->
+    # biến mất hoàn toàn, chỉ còn lại NaN, dù ô đó không hề trống.
+    assert "N/A" not in bad, "bad: literal N/A phải bị coerce thành NaN"
     print("PASS xlsx")
 
 
@@ -73,6 +87,10 @@ def verify_pptx() -> None:
     assert "# Kế hoạch quý 3" not in bad, "bad: textbox không được thành heading"
     assert bad.index("Bước 2") < bad.index("Bước 1"), "bad: shape sort theo tọa độ nên đảo thứ tự"
     assert "Sơ đồ timeline" not in bad, "bad: ảnh không alt thì không có mô tả"
+    # PPTX-02: ảnh không alt text (descr rỗng) ra alt RỖNG, không phải placeholder
+    # literal "image.png" — link target là tên shape tự sinh, không phải tên file gốc.
+    assert "![](" in bad, "bad: ảnh không alt phải ra alt rỗng"
+    assert "image.png" not in bad, "bad: không được có placeholder literal image.png"
     print("PASS pptx")
 
 

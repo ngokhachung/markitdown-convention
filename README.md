@@ -52,5 +52,8 @@ python -m venv .venv
 .venv/Scripts/python samples/convert_and_verify.py   # kỳ vọng: ALL PASS
 ```
 
+Trên macOS/Linux, đường dẫn interpreter trong `.venv` là `.venv/bin/python` thay vì
+`.venv/Scripts/python`.
+
 Nếu nâng version MarkItDown, chạy lại lệnh verify — assert nào fail nghĩa là hành vi
 converter đã đổi và convention cần cập nhật (thực nghiệm thắng tài liệu).
