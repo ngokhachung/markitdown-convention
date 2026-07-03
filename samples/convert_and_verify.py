@@ -56,10 +56,31 @@ def verify_xlsx() -> None:
     print("PASS xlsx")
 
 
+def verify_pptx() -> None:
+    good = convert("pptx-good.pptx")
+    bad = convert("pptx-bad.pptx")
+    # PPTX-01: Title placeholder -> H1
+    assert "# Kế hoạch quý 3" in good, "good: title placeholder phải thành H1"
+    # PPTX-05: nội dung đúng thứ tự đọc
+    assert good.index("Bước 1") < good.index("Bước 2"), "good: thứ tự đọc phải đúng"
+    # PPTX-02: alt text sống sót
+    assert "Sơ đồ timeline" in good, "good: alt text phải xuất hiện"
+    # PPTX-07: speaker notes được convert
+    assert "Notes:" in good and "50 khách hàng" in good, "good: notes phải được convert"
+    # PPTX-06: chart cơ bản thành bảng dữ liệu
+    assert "Tháng 7" in good and "100" in good, "good: chart phải thành bảng dữ liệu"
+    # bad: textbox không thành heading, thứ tự đảo theo tọa độ, không mô tả ảnh
+    assert "# Kế hoạch quý 3" not in bad, "bad: textbox không được thành heading"
+    assert bad.index("Bước 2") < bad.index("Bước 1"), "bad: shape sort theo tọa độ nên đảo thứ tự"
+    assert "Sơ đồ timeline" not in bad, "bad: ảnh không alt thì không có mô tả"
+    print("PASS pptx")
+
+
 def main() -> None:
     OUTPUT_DIR.mkdir(exist_ok=True)
     verify_docx()
     verify_xlsx()
+    verify_pptx()
     print("ALL PASS")
 
 

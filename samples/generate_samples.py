@@ -86,12 +86,62 @@ def gen_xlsx() -> None:
     wb.save(SAMPLES_DIR / "xlsx-bad.xlsx")
 
 
+def gen_pptx() -> None:
+    from pptx import Presentation
+    from pptx.chart.data import CategoryChartData
+    from pptx.enum.chart import XL_CHART_TYPE
+    from pptx.util import Inches
+
+    # good: layout có Title placeholder, bullet trong body, ảnh có alt text,
+    # speaker notes, chart cột cơ bản
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[1])  # Title and Content
+    slide.shapes.title.text = "Kế hoạch quý 3"
+    body = slide.placeholders[1].text_frame
+    body.text = "Bước 1: khảo sát khách hàng"
+    body.add_paragraph().text = "Bước 2: chốt tính năng"
+    pic = slide.shapes.add_picture(
+        io.BytesIO(PNG_1PX), Inches(6), Inches(1), width=Inches(1)
+    )
+    pic._element._nvXxPr.cNvPr.set(
+        "descr", "Sơ đồ timeline quý 3: tháng 7 khảo sát, tháng 8 chốt tính năng"
+    )
+    slide.notes_slide.notes_text_frame.text = (
+        "Chi tiết: khảo sát 50 khách hàng nhóm A trong tháng 7."
+    )
+    slide2 = prs.slides.add_slide(prs.slide_layouts[5])  # Title Only
+    slide2.shapes.title.text = "Doanh thu theo tháng"
+    chart_data = CategoryChartData()
+    chart_data.categories = ["Tháng 7", "Tháng 8"]
+    chart_data.add_series("Doanh thu", (100, 200))
+    slide2.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(1), Inches(2), Inches(6), Inches(4), chart_data,
+    )
+    prs.save(SAMPLES_DIR / "pptx-good.pptx")
+
+    # bad: slide Blank, "tiêu đề" là textbox nằm ĐÁY slide, các bước đặt
+    # đảo vị trí (Bước 2 ở trên, Bước 1 ở dưới), ảnh không alt text
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[6])  # Blank
+    box2 = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(6), Inches(1))
+    box2.text_frame.text = "Bước 2: chốt tính năng"
+    box1 = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(6), Inches(1))
+    box1.text_frame.text = "Bước 1: khảo sát khách hàng"
+    title_box = slide.shapes.add_textbox(Inches(1), Inches(5), Inches(6), Inches(1))
+    title_box.text_frame.text = "Kế hoạch quý 3"
+    slide.shapes.add_picture(io.BytesIO(PNG_1PX), Inches(6), Inches(5), width=Inches(1))
+    prs.save(SAMPLES_DIR / "pptx-bad.pptx")
+
+
 def main() -> None:
     (SAMPLES_DIR / "output").mkdir(exist_ok=True)
     gen_docx()
     print("generated: docx")
     gen_xlsx()
     print("generated: xlsx")
+    gen_pptx()
+    print("generated: pptx")
 
 
 if __name__ == "__main__":
