@@ -285,7 +285,6 @@ def verify_docx() -> None:
     # DOCX-01: Heading Style -> '#'; bold thủ công -> văn bản thường
     assert "# Báo cáo doanh thu 2026 [DOCX-01]" in good, "good: thiếu H1"
     assert "## Tình hình quý 1 [DOCX-01]" in good, "good: thiếu H2"
-    assert not good.count("# ") or True  # (H1/H2 hợp lệ)
     assert "\n# " not in ("\n" + bad), "bad: không được có heading"
     assert "Báo cáo doanh thu 2026" in bad, "bad: text tiêu đề vẫn còn dạng thường"
 
