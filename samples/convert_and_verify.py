@@ -25,23 +25,61 @@ def convert(name: str) -> str:
 def verify_docx() -> None:
     good = convert("docx-good.docx")
     bad = convert("docx-bad.docx")
+
     # DOCX-01: Heading Style -> '#'; bold thủ công -> văn bản thường
-    assert "# Báo cáo doanh thu 2026" in good, "good: thiếu heading H1"
-    assert "## Tình hình quý 1" in good, "good: thiếu heading H2"
-    assert "# " not in bad, "bad: không được có heading nào"
-    assert "Báo cáo doanh thu 2026" in bad, "bad: text tiêu đề vẫn phải còn (dạng thường)"
+    assert "# Báo cáo doanh thu 2026 [DOCX-01]" in good, "good: thiếu H1"
+    assert "## Tình hình quý 1 [DOCX-01]" in good, "good: thiếu H2"
+    assert "\n# " not in ("\n" + bad), "bad: không được có heading"
+    assert "Báo cáo doanh thu 2026" in bad, "bad: text tiêu đề vẫn còn dạng thường"
+
+    # DOCX-02: dòng có tblHeader -> header Markdown thật; bad merge -> header rỗng
+    assert "| Tháng [DOCX-02] | Doanh thu |\n| --- | --- |" in good, "good: header thật"
+    assert "|  |  |\n| --- | --- |" in bad, "bad: không tblHeader -> header rỗng"
+
     # DOCX-03: alt text là thứ duy nhất của ảnh sống sót
-    assert "Biểu đồ" in good, "good: alt text phải xuất hiện trong output"
-    assert "Biểu đồ" not in bad, "bad: không alt text thì không có mô tả ảnh"
-    # DOCX-02: dòng có w:tblHeader (Table Properties -> Row -> "Repeat as header
-    # row") được mammoth map thành <th> -> ra header Markdown thật, không rỗng.
-    assert "| Tháng | Doanh thu |\n| --- | --- |" in good, (
-        "good: dòng có tblHeader phải ra header Markdown thật"
-    )
-    # bad: không set tblHeader -> dòng đầu vẫn bị đẩy xuống thân bảng, header rỗng
-    assert "|  |  |\n| --- | --- |" in bad, (
-        "bad: không tblHeader thì header Markdown vẫn rỗng"
-    )
+    assert "[DOCX-03]" in good and "Biểu đồ cột doanh thu" in good, "good: alt text"
+    assert "Biểu đồ cột doanh thu" not in bad, "bad: ảnh không alt -> không mô tả"
+
+    # DOCX-04: số liệu có bản chữ ở good; ở bad chỉ trong ảnh (note còn, số mất)
+    assert "600 triệu" in good, "good: số liệu dạng chữ"
+    assert "[vi phạm DOCX-04]" in bad, "bad: note vi phạm vẫn còn (chữ thường)"
+
+    # DOCX-05: OMML -> LaTeX ở good; bad là ảnh nên không có LaTeX
+    # Quan sát thực tế (Step 4): MarkItDown chuyển oMath a^2 + b^2 thành đúng
+    # "$a^{2} + b^{2}$" (LaTeX inline, có dấu cách quanh dấu +, mũ dùng {}).
+    assert "$a^{2} + b^{2}$" in good, "good: OMML->LaTeX"
+    assert "$a" not in bad, "bad: công thức dạng ảnh -> không có LaTeX"
+
+    # DOCX-06: tracked insertion đang treo ở bad để lại dấu vết bất định
+    assert "[vi phạm DOCX-06]" in bad, "bad: câu có tracked change vẫn còn"
+    # (ghi chú: nội dung phần chèn có/không tuỳ mammoth — không assert cứng)
+
+    # DOCX-07: text box -> chữ sống sót nhưng bị dồn ra cuối đoạn (rối thứ tự đọc)
+    assert "[vi phạm DOCX-07]" in bad, "bad: note vi phạm text box còn"
+    assert "ĐẠT 600 TRIỆU" in bad, "bad: chữ trong text box vẫn sống sót"
+    assert bad.index("đã kiểm toán") < bad.index("ĐẠT 600 TRIỆU"), \
+        "bad: nội dung text box bị dồn ra sau -> sai thứ tự đọc"
+    assert "[DOCX-07]" in good and "KHUNG NHẤN MẠNH" in good, "good: bảng 1 ô thay text box"
+
+    # DOCX-08: SmartArt/đồ hoạ DrawingML không-fallback -> chữ MẤT
+    assert "[vi phạm DOCX-08]" in bad, "bad: note vi phạm còn"
+    assert "KHẢO SÁT" not in bad, "bad: chữ trong SmartArt/đồ hoạ phải mất"
+    assert "[DOCX-08]" in good, "good: bullet thay SmartArt"
+
+    # DOCX-09: header content biến mất ở bad; good đặt ở thân bài
+    assert "[DOCX-09]" in good, "good: định danh ở đầu thân bài"
+    assert "vi phạm DOCX-09" not in bad, "bad: chữ trong header phải biến mất"
+
+    # DOCX-10: ghi chú trong thân bài (good) hiển thị
+    assert "[DOCX-10]" in good and "tạm tính" in good, "good: ghi chú trong thân bài"
+
+    # DOCX-11: List style -> list markdown; gõ tay -> văn bản thường
+    # Quan sát thực tế (Step 4): List Bullet -> tiền tố "* " (dấu sao + cách).
+    assert "* Bước khảo sát khách hàng [DOCX-11]" in good, "good: list markdown"
+
+    # DOCX-12: hyperlink thật -> [text](url)
+    assert "[báo cáo đầy đủ](https://example.com/bao-cao)" in good, "good: hyperlink markdown"
+
     print("PASS docx")
 
 

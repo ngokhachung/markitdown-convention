@@ -76,17 +76,29 @@ phụ thuộc cách mammoth xử lý phần thêm/xóa đang treo).
 
 ✅ **Đúng:** Review → Accept All Changes → tắt Track Changes → save.
 
-### DOCX-07 — Không dùng text box `[TRÁNH]`
+### DOCX-07 — Không đặt nội dung trong text box `[NÊN]`
 
-**Tại sao:** mammoth bỏ qua nội dung trong text box — chữ biến mất không cảnh báo.
+**Tại sao:** mammoth KHÔNG bỏ chữ trong text box, nhưng cũng không giữ đúng chỗ. Text
+box Word thật được lưu dạng `mc:AlternateContent` (nhánh DrawingML + nhánh VML dự phòng);
+mammoth đọc nhánh VML nên chữ **sống sót**, nhưng bị **dồn ra cuối đoạn văn chứa nó** —
+thứ tự đọc bị xáo trộn âm thầm. (Text box DrawingML thuần, không có nhánh VML, thì mất
+hẳn chữ.) Dù trường hợp nào, output cũng không đáng tin.
 
 ✅ **Thay bằng:** đoạn văn thường; nếu cần đóng khung nhấn mạnh, dùng bảng 1 ô.
+❌ **Sai:** đặt số liệu vào text box — "ĐẠT 600 TRIỆU" bị dồn ra sau "đã kiểm toán"
+trong `samples/output/docx-bad.md`.
 
-### DOCX-08 — Không dùng SmartArt, WordArt, shape có chữ `[TRÁNH]`
+### DOCX-08 — Không đặt chữ mang nghĩa trong SmartArt/đồ hoạ `[TRÁNH]`
 
-**Tại sao:** chữ bên trong các đối tượng đồ họa không được trích xuất.
+**Tại sao:** chữ trong SmartArt thật nằm ở một part riêng (`diagrams/data*.xml`) mà
+mammoth không bao giờ mở — **mất toàn bộ, không dấu vết**. Đồ hoạ DrawingML không có bản
+VML dự phòng cũng mất chữ y hệt. (Shape/WordArt có nhánh VML thì chữ sống sót nhưng bị
+dồn vị trí như text box — xem DOCX-07.)
 
 ✅ **Thay bằng:** bullet list (quy trình), bảng (so sánh), heading (phân cấp).
+❌ **Sai:** để nội dung chỉ trong SmartArt/đồ hoạ — chữ "KHẢO SÁT → PHÂN TÍCH → CHỐT"
+biến mất trong `samples/output/docx-bad.md`. SmartArt thật khó sinh bằng code nên sample
+dùng đồ hoạ DrawingML tương đương về hành vi mất chữ.
 
 ### DOCX-09 — Không đặt nội dung trong header/footer `[TRÁNH]`
 
@@ -128,8 +140,8 @@ trợ (kể cả công thức trong đó), nhưng nội dung chính vẫn nên n
 | DOCX-04 | Thông tin quan trọng có bản chữ | BẮT BUỘC |
 | DOCX-05 | Công thức dùng Insert > Equation | BẮT BUỘC |
 | DOCX-06 | Đã resolve hết tracked changes | BẮT BUỘC |
-| DOCX-07 | Không text box | TRÁNH |
-| DOCX-08 | Không SmartArt/WordArt/shape có chữ | TRÁNH |
+| DOCX-07 | Không nội dung trong text box (sống sót nhưng sai thứ tự) | NÊN | good+bad |
+| DOCX-08 | Không chữ mang nghĩa trong SmartArt/đồ hoạ | TRÁNH | good+bad |
 | DOCX-09 | Không nội dung trong header/footer | TRÁNH |
 | DOCX-10 | Không nội dung trong comment | TRÁNH |
 | DOCX-11 | List dùng bullet/numbering chuẩn | NÊN |

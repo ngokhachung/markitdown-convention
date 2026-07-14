@@ -11,51 +11,212 @@ PNG_1PX = base64.b64decode(
     "AAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 )
 
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls, qn
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
+
+
+def _repeat_header(table):
+    """Đánh dấu dòng đầu 'Repeat as header row' -> mammoth map thành <th>."""
+    tr = table.rows[0]._tr
+    trPr = tr.get_or_add_trPr()
+    el = parse_xml(f'<w:tblHeader {nsdecls("w")} w:val="true"/>')
+    trPr.append(el)
+
+
+def _add_hyperlink(paragraph, url, text):
+    """Hyperlink thật -> [text](url) trong Markdown (DOCX-12)."""
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    xml = (
+        f'<w:hyperlink {nsdecls("w", "r")} r:id="{r_id}">'
+        f'<w:r><w:rPr/><w:t xml:space="preserve">{text}</w:t></w:r>'
+        f'</w:hyperlink>'
+    )
+    paragraph._p.append(parse_xml(xml))
+
+
+def _add_altcontent_textbox(paragraph, text):
+    """Text box kiểu Word thật (mc:AlternateContent: Choice DrawingML + Fallback VML).
+    mammoth đọc nhánh Fallback -> chữ SỐNG SÓT nhưng bị dồn ra cuối đoạn (rối thứ tự)."""
+    xml = (
+        f'<w:r {nsdecls("w", "wp", "a")} '
+        f'xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" '
+        f'xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" '
+        f'xmlns:v="urn:schemas-microsoft-com:vml">'
+        f'<mc:AlternateContent><mc:Choice Requires="wps">'
+        f'<w:drawing><wp:inline><wp:extent cx="2000000" cy="500000"/>'
+        f'<wp:docPr id="11" name="TextBox"/>'
+        f'<a:graphic><a:graphicData '
+        f'uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">'
+        f'<wps:wsp><wps:txbx><w:txbxContent><w:p><w:r>'
+        f'<w:t xml:space="preserve">{text}</w:t>'
+        f'</w:r></w:p></w:txbxContent></wps:txbx><wps:bodyPr/></wps:wsp>'
+        f'</a:graphicData></a:graphic></wp:inline></w:drawing>'
+        f'</mc:Choice><mc:Fallback>'
+        f'<w:pict><v:shape style="width:220pt;height:36pt"><v:textbox>'
+        f'<w:txbxContent><w:p><w:r>'
+        f'<w:t xml:space="preserve">{text}</w:t>'
+        f'</w:r></w:p></w:txbxContent></v:textbox></v:shape></w:pict>'
+        f'</mc:Fallback></mc:AlternateContent></w:r>'
+    )
+    paragraph._p.append(parse_xml(xml))
+
+
+def _add_drawingml_graphic(paragraph, text):
+    """Đồ hoạ DrawingML KHÔNG có VML fallback (đại diện SmartArt: chữ ngoài tầm đọc
+    của mammoth) -> chữ MẤT hoàn toàn."""
+    xml = (
+        f'<w:r {nsdecls("w", "wp", "a")} '
+        f'xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">'
+        f'<w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0">'
+        f'<wp:extent cx="2000000" cy="500000"/>'
+        f'<wp:docPr id="12" name="Graphic"/>'
+        f'<a:graphic><a:graphicData '
+        f'uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape">'
+        f'<wps:wsp><wps:txbx><w:txbxContent><w:p><w:r>'
+        f'<w:t xml:space="preserve">{text}</w:t>'
+        f'</w:r></w:p></w:txbxContent></wps:txbx><wps:bodyPr/></wps:wsp>'
+        f'</a:graphicData></a:graphic>'
+        f'</wp:inline></w:drawing></w:r>'
+    )
+    paragraph._p.append(parse_xml(xml))
+
+
+def _add_omml_pythagoras(paragraph):
+    """Chèn công thức OMML a^2 + b^2 -> MarkItDown chuyển thành LaTeX (DOCX-05)."""
+    xml = (
+        '<m:oMath xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math">'
+        '<m:sSup><m:e><m:r><m:t>a</m:t></m:r></m:e>'
+        '<m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup>'
+        '<m:r><m:t xml:space="preserve"> + </m:t></m:r>'
+        '<m:sSup><m:e><m:r><m:t>b</m:t></m:r></m:e>'
+        '<m:sup><m:r><m:t>2</m:t></m:r></m:sup></m:sSup>'
+        '</m:oMath>'
+    )
+    paragraph._p.append(parse_xml(xml))
+
+
+def _add_tracked_insertion(paragraph, text):
+    """Insertion đang treo (chưa Accept) -> tracked change chưa resolve (DOCX-06)."""
+    xml = (
+        f'<w:ins {nsdecls("w")} w:id="1" w:author="reviewer" '
+        f'w:date="2026-07-15T00:00:00Z"><w:r>'
+        f'<w:t xml:space="preserve">{text}</w:t></w:r></w:ins>'
+    )
+    paragraph._p.append(parse_xml(xml))
+
 
 def gen_docx() -> None:
     from docx import Document
     from docx.shared import Inches, Pt
-    from docx.oxml.ns import qn
-    from docx.oxml import OxmlElement
 
-    # good: heading dùng Style, bảng sạch có header, ảnh có alt text
+    # ---------- GOOD ----------
     doc = Document()
-    doc.add_heading("Báo cáo doanh thu 2026", level=1)
-    doc.add_heading("Tình hình quý 1", level=2)
-    doc.add_paragraph("Doanh thu quý 1 đạt 600 triệu, tăng 20% so với cùng kỳ.")
-    table = doc.add_table(rows=3, cols=2)
-    data = [("Tháng", "Doanh thu"), ("01", "100"), ("02", "200")]
+    doc.add_heading("Báo cáo doanh thu 2026 [DOCX-01]", level=1)      # DOCX-01
+    doc.add_heading("Tình hình quý 1 [DOCX-01]", level=2)
+    p9 = doc.add_paragraph(
+        "Mã dự án DT-2026, phiên bản 1.0 — định danh đặt ở đầu thân bài, "
+        "không nhét vào header/footer. [DOCX-09]"                     # DOCX-09
+    )
+    doc.add_paragraph(
+        "Doanh thu quý 1 đạt 600 triệu (số liệu gõ thành văn bản, không chỉ "
+        "nằm trong ảnh). [DOCX-04]"                                   # DOCX-04
+    )
+    p5 = doc.add_paragraph("Ràng buộc kiểm tra [DOCX-05]: ")          # DOCX-05
+    _add_omml_pythagoras(p5)
+
+    table = doc.add_table(rows=3, cols=2)                             # DOCX-02
+    data = [("Tháng [DOCX-02]", "Doanh thu"), ("01", "100"), ("02", "200")]
     for row, (c1, c2) in zip(table.rows, data):
         row.cells[0].text = c1
         row.cells[1].text = c2
-    # Đánh dấu dòng đầu là "Repeat as header row at the top of each page"
-    # (Table Properties -> Row) -> mammoth map dòng này thành <th>, ra header
-    # Markdown thật.
-    tr = table.rows[0]._tr
-    trPr = tr.get_or_add_trPr()
-    tbl_header = OxmlElement("w:tblHeader")
-    tbl_header.set(qn("w:val"), "true")
-    trPr.append(tbl_header)
+    _repeat_header(table)
+
+    doc.add_paragraph("Bước khảo sát khách hàng [DOCX-11]", style="List Bullet")
+    doc.add_paragraph("Bước chốt tính năng [DOCX-11]", style="List Bullet")  # DOCX-11
+
+    p12 = doc.add_paragraph("Nguồn tham chiếu [DOCX-12]: ")           # DOCX-12
+    _add_hyperlink(p12, "https://example.com/bao-cao", "báo cáo đầy đủ")
+
+    p10 = doc.add_paragraph(
+        "Lưu ý: số liệu quý 1 là tạm tính, chốt lại cuối tháng 4. "
+        "(ghi chú giữ lại đặt trong thân bài, không dùng comment) [DOCX-10]"  # DOCX-10
+    )
+    # DOCX-07: thay text box bằng bảng 1 ô để nhấn mạnh
+    box_tbl = doc.add_table(rows=1, cols=1)
+    box_tbl.style = "Table Grid"
+    box_tbl.rows[0].cells[0].text = (
+        "KHUNG NHẤN MẠNH: dùng bảng 1 ô thay cho text box. [DOCX-07]"
+    )
+    # DOCX-08: thay SmartArt bằng bullet list
+    doc.add_paragraph("Quy trình thay cho SmartArt [DOCX-08]:")
+    doc.add_paragraph("B1 khảo sát", style="List Number")
+    doc.add_paragraph("B2 phân tích", style="List Number")
+    # DOCX-03: ảnh có alt text
     pic = doc.add_picture(io.BytesIO(PNG_1PX), width=Inches(1))
     pic._inline.docPr.set(
-        "descr", "Biểu đồ cột doanh thu theo tháng: tháng 1 đạt 100, tháng 2 đạt 200"
+        "descr",
+        "Biểu đồ cột doanh thu theo tháng: tháng 1 đạt 100, tháng 2 đạt 200 [DOCX-03]",
     )
     pic._inline.docPr.set("title", "Biểu đồ doanh thu")
+    # DOCX-06: file good không còn tracked change (chỉ ghi chú)
+    doc.add_paragraph(
+        "Đã Accept toàn bộ thay đổi, tắt Track Changes trước khi nộp. [DOCX-06]"
+    )
     doc.save(SAMPLES_DIR / "docx-good.docx")
 
-    # bad: "tiêu đề" bằng bold + cỡ chữ, bảng merge header, ảnh không alt text
+    # ---------- BAD ----------
     doc = Document()
-    p = doc.add_paragraph()
-    run = p.add_run("Báo cáo doanh thu 2026")
+    p = doc.add_paragraph()                                          # DOCX-01 (vi phạm)
+    run = p.add_run("Báo cáo doanh thu 2026 [vi phạm DOCX-01: bold+cỡ chữ]")
     run.bold = True
     run.font.size = Pt(16)
+
+    # DOCX-09 (vi phạm): nội dung đặt trong header
+    doc.sections[0].header.paragraphs[0].text = (
+        "Mã dự án DT-2026 [vi phạm DOCX-09: đặt trong header, sẽ biến mất]"
+    )
+
+    # DOCX-02 (vi phạm): bảng merge header, không đánh dấu header row
     table = doc.add_table(rows=3, cols=2)
     table.rows[0].cells[0].merge(table.rows[0].cells[1])
-    table.rows[0].cells[0].text = "Doanh thu theo tháng"
+    table.rows[0].cells[0].text = "Doanh thu theo tháng [vi phạm DOCX-02: merge]"
     table.rows[1].cells[0].text = "01"
     table.rows[1].cells[1].text = "100"
     table.rows[2].cells[0].text = "02"
     table.rows[2].cells[1].text = "200"
+
+    # DOCX-05 (vi phạm): "công thức" là ảnh, không có bản OMML
+    doc.add_paragraph(
+        "Ràng buộc a^2+b^2 chỉ tồn tại trong ảnh dưới đây [vi phạm DOCX-05]:"
+    )
+    doc.add_picture(io.BytesIO(PNG_1PX), width=Inches(1))
+
+    # DOCX-07 (vi phạm): text box -> chữ sống sót nhưng bị dồn ra cuối đoạn
+    p7 = doc.add_paragraph("Doanh thu quý 1: ")
+    _add_altcontent_textbox(p7, "ĐẠT 600 TRIỆU")
+    p7.add_run(" — đã kiểm toán. [vi phạm DOCX-07]")
+
+    # DOCX-08 (vi phạm): SmartArt/đồ hoạ DrawingML -> chữ MẤT hoàn toàn
+    doc.add_paragraph(
+        "Sơ đồ quy trình dưới đây là SmartArt/đồ hoạ, chữ bên trong sẽ MẤT "
+        "[vi phạm DOCX-08]:"
+    )
+    p8 = doc.add_paragraph()
+    _add_drawingml_graphic(p8, "KHẢO SÁT → PHÂN TÍCH → CHỐT")
+
+    # DOCX-06 (vi phạm): tracked change chưa resolve
+    p6 = doc.add_paragraph("Câu có sửa đổi đang treo [vi phạm DOCX-06]: ")
+    _add_tracked_insertion(p6, "PHẦN CHÈN ĐANG TREO")
+
+    # DOCX-11 (vi phạm): gõ tay dấu gạch đầu dòng
+    doc.add_paragraph("- Bước khảo sát (gõ tay) [vi phạm DOCX-11]")
+    doc.add_paragraph("- Bước chốt tính năng (gõ tay)")
+
+    # DOCX-03/04 (vi phạm): ảnh không alt text, số liệu chỉ nằm trong ảnh
+    doc.add_paragraph(
+        "Bảng số liệu bên dưới chỉ là ảnh chụp, không có bản chữ [vi phạm DOCX-04]:"
+    )
     doc.add_picture(io.BytesIO(PNG_1PX), width=Inches(1))
     doc.save(SAMPLES_DIR / "docx-bad.docx")
 
