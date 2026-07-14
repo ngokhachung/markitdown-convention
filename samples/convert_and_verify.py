@@ -86,25 +86,42 @@ def verify_docx() -> None:
 def verify_xlsx() -> None:
     good = convert("xlsx-good.xlsx")
     bad = convert("xlsx-bad.xlsx")
-    # XLSX-07: tên sheet thành heading ##
-    assert "## DoanhThu2026" in good, "good: tên sheet phải thành heading"
-    # XLSX-08: bảng sạch không có NaN. Lưu ý (phát hiện thực nghiệm): pandas coi các
-    # literal "N/A"/"NA"/"NULL"/"None"/"n/a"/"nan"... là giá trị khuyết -> NaN dù ô
-    # KHÔNG trống, nên file good phải dùng "Không áp dụng" thay vì "N/A" ở dòng Tổng.
-    assert "NaN" not in good, "good: không được xuất hiện NaN"
-    assert "Tổng" in good and "600" in good, "good: dòng tổng ghi giá trị phải giữ nguyên"
-    # XLSX-03/08: merge + ô trống sinh chữ NaN trong output
-    assert "NaN" in bad, "bad: merge cell và ô trống phải sinh NaN"
-    # XLSX-01/02: tiêu đề trang trí chiếm dòng header -> cột Unnamed
-    assert "Unnamed" in bad, "bad: header giả phải sinh cột Unnamed"
-    # XLSX-04: công thức không cached value -> kết quả biến mất
-    assert "330" not in bad, "bad: 110*3=330 không được xuất hiện (không cached value)"
-    assert "=B4" not in bad, "bad: chuỗi công thức cũng không được xuất hiện"
-    # XLSX-06: sheet ẩn vẫn bị convert
-    assert "nháp" in bad, "bad: nội dung sheet ẩn vẫn lộ ra output"
-    # XLSX-08: literal "N/A" (cột "Ghi chú") bị pandas coi là giá trị khuyết ->
-    # biến mất hoàn toàn, chỉ còn lại NaN, dù ô đó không hề trống.
-    assert "N/A" not in bad, "bad: literal N/A phải bị coerce thành NaN"
+
+    # XLSX-07: tên sheet -> heading ##
+    assert "## DoanhThu2026" in good and "## NgayVaTyLe" in good, "good: heading sheet"
+    assert "## Sheet1" in bad, "bad: tên sheet vô nghĩa vẫn thành heading"
+
+    # XLSX-01/02/03/08: bảng good sạch, không NaN
+    assert "NaN" not in good, "good: không NaN"
+    assert "| Tháng | Doanh thu | Trạng thái | Quy tắc |" in good, "good: header thật"
+
+    # XLSX-04: tổng ghi giá trị (600) giữ nguyên
+    assert "Tổng" in good and "600" in good, "good: giá trị tổng giữ nguyên"
+
+    # XLSX-05: trạng thái bằng chữ hiện diện (không phụ thuộc màu/chart)
+    assert "Vượt" in good, "good: trạng thái bằng chữ"
+
+    # XLSX-09: giá trị thô ngày + %
+    # Quan sát thực tế (Step 2): pandas.read_excel trả về Timestamp('2026-07-03
+    # 00:00:00'), nhưng MarkItDown render qua DataFrame.to_html() — pandas rút gọn
+    # cột datetime toàn giờ-phút-giây = 00:00:00 thành CHỈ ngày, không có "00:00:00".
+    # -> raw output thực tế là "2026-07-03", KHÔNG PHẢI "2026-07-03 00:00:00".
+    assert "2026-07-03" in good, "good: ngày ra dạng thô"
+    assert "0.15" in good, "good: % ra 0.15 (giá trị thô)"
+
+    # XLSX-01/02: tiêu đề trang trí chiếm header -> Unnamed
+    assert "Unnamed" in bad, "bad: header giả -> Unnamed"
+    # XLSX-03/08: merge + ô trống + literal N/A -> NaN
+    assert "NaN" in bad, "bad: merge/ô trống -> NaN"
+    assert "N/A" not in bad, "bad: literal N/A bị coerce thành NaN"
+    # XLSX-04: công thức không cached -> mất
+    assert "330" not in bad, "bad: 110*3=330 không xuất hiện"
+    assert "=B4" not in bad, "bad: chuỗi công thức không xuất hiện"
+    # XLSX-05: thông tin chỉ trong comment/màu -> mất
+    assert "Vượt kế hoạch 10%" not in bad, "bad: nội dung comment biến mất"
+    # XLSX-06: sheet ẩn vẫn convert
+    assert "## NhapLieuTam" in bad and "nháp" in bad, "bad: sheet ẩn vẫn lộ"
+
     print("PASS xlsx")
 
 

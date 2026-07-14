@@ -222,39 +222,71 @@ def gen_docx() -> None:
 
 
 def gen_xlsx() -> None:
+    import datetime
     from openpyxl import Workbook
+    from openpyxl.comments import Comment
+    from openpyxl.styles import PatternFill
+    from openpyxl.chart import BarChart, Reference
 
-    # good: 1 sheet = 1 bảng từ A1, dòng 1 là header, không merge,
-    # dòng Tổng ghi GIÁ TRỊ chứ không ghi công thức
+    # ---------- GOOD ----------
     wb = Workbook()
+    # Sheet 1: 1 bảng từ A1, header dòng 1, không merge, cột Trạng thái bằng chữ,
+    # cột "Quy tắc" gắn nhãn từng dòng (XLSX-01/02/03/04/05/07/08)
     ws = wb.active
-    ws.title = "DoanhThu2026"
-    ws.append(["Tháng", "Doanh thu", "Trạng thái"])
-    ws.append(["01", 100, "Đạt"])
-    ws.append(["02", 200, "Đạt"])
-    ws.append(["03", 300, "Vượt"])
-    # "Không áp dụng" thay vì "N/A": pandas coi literal "N/A" là giá trị khuyết -> NaN
-    ws.append(["Tổng", 600, "Không áp dụng"])
+    ws.title = "DoanhThu2026"                                   # XLSX-07
+    ws.append(["Tháng", "Doanh thu", "Trạng thái", "Quy tắc"])  # XLSX-02
+    ws.append(["01", 100, "Đạt", "XLSX-01/02/03: bảng sạch từ A1"])
+    ws.append(["02", 200, "Đạt", "XLSX-05: trạng thái bằng chữ, không chỉ màu"])
+    ws.append(["03", 300, "Vượt", "XLSX-08: điền đủ, không ô trống"])
+    # XLSX-04: dòng tổng ghi GIÁ TRỊ đã tính (600), không ghi công thức
+    ws.append(["Tổng", 600, "Không áp dụng", "XLSX-04: ghi sẵn giá trị, không formula"])
+    # XLSX-05: chart lấy nguồn từ bảng đang hiện diện (dữ liệu vẫn có bản chữ)
+    chart = BarChart()
+    chart.title = "Doanh thu theo tháng"
+    data = Reference(ws, min_col=2, min_row=1, max_row=4)
+    cats = Reference(ws, min_col=1, min_row=2, max_row=4)
+    chart.add_data(data, titles_from_data=True)
+    chart.set_categories(cats)
+    ws.add_chart(chart, "F2")
+
+    # Sheet 2: XLSX-09 — ý thức giá trị thô (ngày, %)
+    ws2 = wb.create_sheet("NgayVaTyLe")                          # XLSX-07 + XLSX-10 (bảng riêng)
+    ws2.append(["Mốc", "Ngày", "Tỷ lệ", "Quy tắc"])
+    d = ws2.cell(row=2, column=2, value=datetime.datetime(2026, 7, 3))
+    d.number_format = "dd/mm/yyyy"
+    r = ws2.cell(row=2, column=3, value=0.15)
+    r.number_format = "0%"
+    ws2["A2"] = "Chốt Q1"
+    ws2["D2"] = "XLSX-09: output ra giá trị thô 2026-07-03 00:00:00 và 0.15"
     wb.save(SAMPLES_DIR / "xlsx-good.xlsx")
 
-    # bad: tiêu đề trang trí + merge, bảng lệch khỏi A1, ô bỏ trống,
-    # công thức chưa từng được Excel tính (không cached value), sheet ẩn
+    # ---------- BAD ----------
     wb = Workbook()
     ws = wb.active
-    ws.title = "Sheet1"
-    ws["A1"] = "BÁO CÁO DOANH THU NĂM 2026"
-    ws.merge_cells("A1:C1")
+    ws.title = "Sheet1"                                          # XLSX-07 (vi phạm)
+    ws["A1"] = "BÁO CÁO DOANH THU NĂM 2026 [vi phạm XLSX-01/02]"  # tiêu đề trang trí
+    ws.merge_cells("A1:D1")                                       # XLSX-03 (vi phạm)
     ws["A3"] = "Tháng"
     ws["B3"] = "Doanh thu"
     ws["C3"] = "Ghi chú"
     ws["A4"] = "01"
     ws["B4"] = 110
-    ws["C4"] = "N/A"         # literal "N/A" -> pandas coi là giá trị khuyết -> NaN
-    ws["A5"] = "02"          # B5 cố tình bỏ trống
+    ws["C4"] = "N/A"          # XLSX-08 (vi phạm): literal N/A -> pandas coi là khuyết
+    ws["A5"] = "02"           # XLSX-08 (vi phạm): B5 bỏ trống
     ws["A6"] = "Gấp ba"
-    ws["B6"] = "=B4*3"       # openpyxl không tính -> không có cached value
+    ws["B6"] = "=B4*3"        # XLSX-04 (vi phạm): openpyxl không cache -> mất
+    # XLSX-05 (vi phạm): thông tin chỉ nằm trong comment + màu nền, không có bản chữ
+    ws["B4"].comment = Comment("Vượt kế hoạch 10% [vi phạm XLSX-05: chỉ trong comment]", "pm")
+    ws["B4"].fill = PatternFill("solid", fgColor="FF0000")
+    # XLSX-10 (vi phạm): bảng con thứ hai + dòng ghi chú xen kẽ trong cùng sheet
+    ws["A8"] = "Chi phí [vi phạm XLSX-10: bảng con thứ 2 chung sheet]"
+    ws["A9"] = "Khoản"
+    ws["B9"] = "Số tiền"
+    ws["A10"] = "Marketing"
+    ws["B10"] = 50
+    # XLSX-06 (vi phạm): sheet nháp bị ẩn vẫn convert
     hidden = wb.create_sheet("NhapLieuTam")
-    hidden["A1"] = "dữ liệu nháp không nên lộ ra"
+    hidden["A1"] = "dữ liệu nháp không nên lộ ra [vi phạm XLSX-06: sheet ẩn]"
     hidden.sheet_state = "hidden"
     wb.save(SAMPLES_DIR / "xlsx-bad.xlsx")
 
