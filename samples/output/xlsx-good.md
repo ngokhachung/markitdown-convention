@@ -9,4 +9,4 @@
 ## NgayVaTyLe
 | Mốc | Ngày | Tỷ lệ | Quy tắc |
 | --- | --- | --- | --- |
-| Chốt Q1 | 2026-07-03 | 0.15 | XLSX-09: output ra giá trị thô 2026-07-03 00:00:00 và 0.15 |
+| Chốt Q1 | 2026-07-03 | 0.15 | XLSX-09: ngày & % ra giá trị thô, không theo định dạng hiển thị |

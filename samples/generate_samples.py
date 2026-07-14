@@ -257,7 +257,7 @@ def gen_xlsx() -> None:
     r = ws2.cell(row=2, column=3, value=0.15)
     r.number_format = "0%"
     ws2["A2"] = "Chốt Q1"
-    ws2["D2"] = "XLSX-09: output ra giá trị thô 2026-07-03 00:00:00 và 0.15"
+    ws2["D2"] = "XLSX-09: ngày & % ra giá trị thô, không theo định dạng hiển thị"
     wb.save(SAMPLES_DIR / "xlsx-good.xlsx")
 
     # ---------- BAD ----------

@@ -101,13 +101,13 @@ def verify_xlsx() -> None:
     # XLSX-05: trạng thái bằng chữ hiện diện (không phụ thuộc màu/chart)
     assert "Vượt" in good, "good: trạng thái bằng chữ"
 
-    # XLSX-09: giá trị thô ngày + %
-    # Quan sát thực tế (Step 2): pandas.read_excel trả về Timestamp('2026-07-03
-    # 00:00:00'), nhưng MarkItDown render qua DataFrame.to_html() — pandas rút gọn
-    # cột datetime toàn giờ-phút-giây = 00:00:00 thành CHỈ ngày, không có "00:00:00".
+    # XLSX-09: giá trị thô ngày + % — pin đúng Ô Ngày/Tỷ lệ bằng assert row-scoped,
+    # không để lọt qua chữ trong ô nhãn.
+    # Quan sát thực tế: pandas.read_excel trả về Timestamp('2026-07-03 00:00:00'),
+    # nhưng MarkItDown render qua DataFrame.to_html() — pandas rút gọn cột datetime
+    # toàn giờ-phút-giây = 00:00:00 thành CHỈ ngày, không có "00:00:00".
     # -> raw output thực tế là "2026-07-03", KHÔNG PHẢI "2026-07-03 00:00:00".
-    assert "2026-07-03" in good, "good: ngày ra dạng thô"
-    assert "0.15" in good, "good: % ra 0.15 (giá trị thô)"
+    assert "| Chốt Q1 | 2026-07-03 | 0.15 |" in good, "good: ngày & % ra giá trị thô"
 
     # XLSX-01/02: tiêu đề trang trí chiếm header -> Unnamed
     assert "Unnamed" in bad, "bad: header giả -> Unnamed"
@@ -121,6 +121,8 @@ def verify_xlsx() -> None:
     assert "Vượt kế hoạch 10%" not in bad, "bad: nội dung comment biến mất"
     # XLSX-06: sheet ẩn vẫn convert
     assert "## NhapLieuTam" in bad and "nháp" in bad, "bad: sheet ẩn vẫn lộ"
+    # XLSX-10: bảng con thứ 2 xen kẽ trong 1 sheet vẫn lọt vào output (cấu trúc sai)
+    assert "Chi phí [vi phạm XLSX-10" in bad, "bad: bảng con thứ 2 chung sheet"
 
     print("PASS xlsx")
 
