@@ -140,8 +140,8 @@ trợ (kể cả công thức trong đó), nhưng nội dung chính vẫn nên n
 | DOCX-04 | Thông tin quan trọng có bản chữ | BẮT BUỘC |
 | DOCX-05 | Công thức dùng Insert > Equation | BẮT BUỘC |
 | DOCX-06 | Đã resolve hết tracked changes | BẮT BUỘC |
-| DOCX-07 | Không nội dung trong text box (sống sót nhưng sai thứ tự) | NÊN | good+bad |
-| DOCX-08 | Không chữ mang nghĩa trong SmartArt/đồ hoạ | TRÁNH | good+bad |
+| DOCX-07 | Không nội dung trong text box (sống sót nhưng sai thứ tự) | NÊN |
+| DOCX-08 | Không chữ mang nghĩa trong SmartArt/đồ hoạ | TRÁNH |
 | DOCX-09 | Không nội dung trong header/footer | TRÁNH |
 | DOCX-10 | Không nội dung trong comment | TRÁNH |
 | DOCX-11 | List dùng bullet/numbering chuẩn | NÊN |

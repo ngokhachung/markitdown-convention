@@ -12,7 +12,7 @@ PNG_1PX = base64.b64decode(
 )
 
 from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls, qn
+from docx.oxml.ns import nsdecls
 from docx.opc.constants import RELATIONSHIP_TYPE as RT
 
 
