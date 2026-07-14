@@ -295,27 +295,30 @@ def gen_pptx() -> None:
     from pptx import Presentation
     from pptx.chart.data import CategoryChartData
     from pptx.enum.chart import XL_CHART_TYPE
-    from pptx.util import Inches
+    from pptx.oxml.ns import qn
+    from pptx.util import Inches, Pt
 
-    # good: layout có Title placeholder, bullet trong body, ảnh có alt text,
-    # speaker notes, chart cột cơ bản
+    # ---------- GOOD ----------
     prs = Presentation()
-    slide = prs.slides.add_slide(prs.slide_layouts[1])  # Title and Content
-    slide.shapes.title.text = "Kế hoạch quý 3"
+    # Slide 1: Title placeholder + bullet (thay SmartArt) + alt text + notes (1 chủ đề)
+    slide = prs.slides.add_slide(prs.slide_layouts[1])          # PPTX-01, PPTX-09
+    slide.shapes.title.text = "Kế hoạch quý 3 [PPTX-01]"
     body = slide.placeholders[1].text_frame
-    body.text = "Bước 1: khảo sát khách hàng"
-    body.add_paragraph().text = "Bước 2: chốt tính năng"
+    body.text = "Bước 1: khảo sát khách hàng [PPTX-03: bullet thay SmartArt]"  # PPTX-03/05
+    body.add_paragraph().text = "Bước 2: chốt tính năng [PPTX-05: đúng trục đọc]"
     pic = slide.shapes.add_picture(
         io.BytesIO(PNG_1PX), Inches(6), Inches(1), width=Inches(1)
     )
     pic._element._nvXxPr.cNvPr.set(
-        "descr", "Sơ đồ timeline quý 3: tháng 7 khảo sát, tháng 8 chốt tính năng"
-    )
+        "descr", "Sơ đồ timeline quý 3: tháng 7 khảo sát, tháng 8 chốt [PPTX-02]"
+    )                                                            # PPTX-02
     slide.notes_slide.notes_text_frame.text = (
-        "Chi tiết: khảo sát 50 khách hàng nhóm A trong tháng 7."
-    )
-    slide2 = prs.slides.add_slide(prs.slide_layouts[5])  # Title Only
-    slide2.shapes.title.text = "Doanh thu theo tháng"
+        "Chi tiết: khảo sát 50 khách hàng nhóm A trong tháng 7. [PPTX-07]"
+    )                                                            # PPTX-07
+
+    # Slide 2: chart cơ bản (PPTX-06) — 1 chủ đề
+    slide2 = prs.slides.add_slide(prs.slide_layouts[5])
+    slide2.shapes.title.text = "Doanh thu theo tháng [PPTX-06]"
     chart_data = CategoryChartData()
     chart_data.categories = ["Tháng 7", "Tháng 8"]
     chart_data.add_series("Doanh thu", (100, 200))
@@ -323,25 +326,61 @@ def gen_pptx() -> None:
         XL_CHART_TYPE.COLUMN_CLUSTERED,
         Inches(1), Inches(2), Inches(6), Inches(4), chart_data,
     )
+
+    # Slide 3: bảng không merge (PPTX-08) + icon có nhãn chữ (PPTX-10) + số liệu bằng chữ (PPTX-04)
+    slide3 = prs.slides.add_slide(prs.slide_layouts[5])
+    slide3.shapes.title.text = "Chi tiết doanh thu [PPTX-08]"
+    tbl = slide3.shapes.add_table(3, 2, Inches(1), Inches(2), Inches(4), Inches(2)).table
+    tbl.cell(0, 0).text = "Tháng"
+    tbl.cell(0, 1).text = "Doanh thu [PPTX-04: số liệu bằng chữ]"
+    tbl.cell(1, 0).text = "07"
+    tbl.cell(1, 1).text = "100"
+    tbl.cell(2, 0).text = "08"
+    tbl.cell(2, 1).text = "200"
+    label = slide3.shapes.add_textbox(Inches(6), Inches(2), Inches(3), Inches(0.6))
+    label.text_frame.text = "▲ Tăng trưởng — icon kèm nhãn chữ [PPTX-10]"
     prs.save(SAMPLES_DIR / "pptx-good.pptx")
 
-    # bad: slide Blank, "tiêu đề" là textbox nằm ĐÁY slide, các bước đặt
-    # đảo vị trí (Bước 2 ở trên, Bước 1 ở dưới), ảnh không alt text
+    # ---------- BAD ----------
     prs = Presentation()
-    slide = prs.slides.add_slide(prs.slide_layouts[6])  # Blank
+    slide = prs.slides.add_slide(prs.slide_layouts[6])          # Blank
+    # PPTX-05 (vi phạm): Bước 2 đặt CAO hơn Bước 1 -> sort toạ độ đảo thứ tự
     box2 = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(6), Inches(1))
-    box2.text_frame.text = "Bước 2: chốt tính năng"
+    box2.text_frame.text = "Bước 2: chốt tính năng [vi phạm PPTX-05: đặt trên]"
     box1 = slide.shapes.add_textbox(Inches(1), Inches(3), Inches(6), Inches(1))
-    box1.text_frame.text = "Bước 1: khảo sát khách hàng"
+    box1.text_frame.text = "Bước 1: khảo sát khách hàng [vi phạm PPTX-05: đặt dưới]"
+    # PPTX-01 (vi phạm): "tiêu đề" là textbox, không phải placeholder
     title_box = slide.shapes.add_textbox(Inches(1), Inches(5), Inches(6), Inches(1))
-    title_box.text_frame.text = "Kế hoạch quý 3"
+    title_box.text_frame.text = "Kế hoạch quý 3 [vi phạm PPTX-01: textbox không thành heading]"
+    # PPTX-02/04 (vi phạm): ảnh không alt text, số liệu chỉ trong ảnh
     pic_bad = slide.shapes.add_picture(
         io.BytesIO(PNG_1PX), Inches(6), Inches(5), width=Inches(1)
     )
-    # python-pptx tự viết descr="image.png" khi add_picture từ stream — đó là
-    # artifact của python-pptx, KHÔNG phải hành vi MarkItDown. Xóa để mẫu phản
-    # ánh đúng trường hợp "ảnh không có alt text" (descr rỗng) mà convention mô tả.
-    pic_bad._element._nvXxPr.cNvPr.set("descr", "")
+    pic_bad._element._nvXxPr.cNvPr.set("descr", "")  # descr rỗng = không alt text
+
+    # Slide 2: PPTX-06 (vi phạm) chart 3D + PPTX-08 (vi phạm) bảng merge + PPTX-09 (vi phạm) nhồi 2 chủ đề
+    slide2 = prs.slides.add_slide(prs.slide_layouts[6])
+    note = slide2.shapes.add_textbox(Inches(0.5), Inches(0.3), Inches(9), Inches(0.6))
+    note.text_frame.text = "Slide nhồi 2 chủ đề [vi phạm PPTX-09]"
+    cd = CategoryChartData()
+    cd.categories = ["Tháng 7", "Tháng 8"]
+    cd.add_series("Doanh thu", (100, 200))
+    # python-pptx không ghi được 3D chart trực tiếp, nên ghi COLUMN_CLUSTERED
+    # rồi đổi tên thẻ XML thành bar3DChart để MarkItDown báo "unsupported chart"
+    chart_shape = slide2.shapes.add_chart(
+        XL_CHART_TYPE.COLUMN_CLUSTERED,
+        Inches(0.5), Inches(1), Inches(4), Inches(3), cd,
+    )
+    # Đổi barChart -> bar3DChart trong XML để mô phỏng chart 3D không hỗ trợ
+    for el in chart_shape.chart_part._element.iterfind(".//" + qn("c:barChart")):
+        el.tag = qn("c:bar3DChart")
+    tbl2 = slide2.shapes.add_table(3, 2, Inches(5), Inches(1), Inches(4), Inches(2)).table
+    tbl2.cell(0, 0).merge(tbl2.cell(0, 1))                      # PPTX-08 (vi phạm)
+    tbl2.cell(0, 0).text = "Doanh thu [vi phạm PPTX-08: merge]"
+    tbl2.cell(1, 0).text = "07"
+    tbl2.cell(1, 1).text = "100"
+    tbl2.cell(2, 0).text = "08"
+    tbl2.cell(2, 1).text = "200"
     prs.save(SAMPLES_DIR / "pptx-bad.pptx")
 
 
