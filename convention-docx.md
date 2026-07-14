@@ -132,17 +132,17 @@ trợ (kể cả công thức trong đó), nhưng nội dung chính vẫn nên n
 
 ## Checklist trước khi nộp file Word
 
-| ID | Quy tắc | Mức |
-|---|---|---|
-| DOCX-01 | Tiêu đề dùng Heading Style | BẮT BUỘC |
-| DOCX-02 | Bảng không merge cell, đánh dấu "Repeat as header row" | BẮT BUỘC |
-| DOCX-03 | Mọi ảnh có alt text mô tả đủ | BẮT BUỘC |
-| DOCX-04 | Thông tin quan trọng có bản chữ | BẮT BUỘC |
-| DOCX-05 | Công thức dùng Insert > Equation | BẮT BUỘC |
-| DOCX-06 | Đã resolve hết tracked changes | BẮT BUỘC |
-| DOCX-07 | Không nội dung trong text box (sống sót nhưng sai thứ tự) | NÊN |
-| DOCX-08 | Không chữ mang nghĩa trong SmartArt/đồ hoạ | TRÁNH |
-| DOCX-09 | Không nội dung trong header/footer | TRÁNH |
-| DOCX-10 | Không nội dung trong comment | TRÁNH |
-| DOCX-11 | List dùng bullet/numbering chuẩn | NÊN |
-| DOCX-12 | Link qua Insert > Link | NÊN |
+| ID | Quy tắc | Mức | Sample |
+|---|---|---|---|---|
+| DOCX-01 | Tiêu đề dùng Heading Style | BẮT BUỘC | good+bad |
+| DOCX-02 | Bảng không merge cell, đánh dấu "Repeat as header row" | BẮT BUỘC | good+bad |
+| DOCX-03 | Mọi ảnh có alt text mô tả đủ | BẮT BUỘC | good+bad |
+| DOCX-04 | Thông tin quan trọng có bản chữ | BẮT BUỘC | good+bad |
+| DOCX-05 | Công thức dùng Insert > Equation | BẮT BUỘC | good+bad |
+| DOCX-06 | Đã resolve hết tracked changes | BẮT BUỘC | bad |
+| DOCX-07 | Không nội dung trong text box (sống sót nhưng sai thứ tự) | NÊN | good+bad |
+| DOCX-08 | Không chữ mang nghĩa trong SmartArt/đồ hoạ | TRÁNH | good+bad |
+| DOCX-09 | Không nội dung trong header/footer | TRÁNH | good+bad |
+| DOCX-10 | Không nội dung trong comment | TRÁNH | good |
+| DOCX-11 | List dùng bullet/numbering chuẩn | NÊN | good+bad |
+| DOCX-12 | Link qua Insert > Link | NÊN | good |

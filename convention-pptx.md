@@ -104,15 +104,15 @@ nghĩa nào trong output.
 
 ## Checklist trước khi nộp file PowerPoint
 
-| ID | Quy tắc | Mức |
-|---|---|---|
-| PPTX-01 | Layout có Title placeholder | BẮT BUỘC |
-| PPTX-02 | Mọi ảnh có alt text | BẮT BUỘC |
-| PPTX-03 | Không SmartArt | BẮT BUỘC |
-| PPTX-04 | Chữ quan trọng không nằm trong ảnh | BẮT BUỘC |
-| PPTX-05 | Shape xếp theo trục đọc | NÊN |
-| PPTX-06 | Chart loại cơ bản | NÊN |
-| PPTX-07 | Nội dung chi tiết vào speaker notes | NÊN |
-| PPTX-08 | Bảng không merge cell | NÊN |
-| PPTX-09 | Mỗi slide 1 chủ đề | NÊN |
-| PPTX-10 | Không WordArt/icon thiếu nhãn chữ | TRÁNH |
+| ID | Quy tắc | Mức | Sample |
+|---|---|---|---|---|
+| PPTX-01 | Layout có Title placeholder | BẮT BUỘC | good+bad |
+| PPTX-02 | Mọi ảnh có alt text | BẮT BUỘC | good+bad |
+| PPTX-03 | Không SmartArt | BẮT BUỘC | good+bad |
+| PPTX-04 | Chữ quan trọng không nằm trong ảnh | BẮT BUỘC | good+bad |
+| PPTX-05 | Shape xếp theo trục đọc | NÊN | good+bad |
+| PPTX-06 | Chart loại cơ bản | NÊN | good+bad |
+| PPTX-07 | Nội dung chi tiết vào speaker notes | NÊN | good |
+| PPTX-08 | Bảng không merge cell | NÊN | good+bad |
+| PPTX-09 | Mỗi slide 1 chủ đề | NÊN | good+bad |
+| PPTX-10 | Không WordArt/icon thiếu nhãn chữ | TRÁNH | good+bad |

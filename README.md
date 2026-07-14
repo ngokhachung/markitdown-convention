@@ -42,8 +42,10 @@ tự mô tả ảnh, hai quy tắc đó có thể nới lỏng cho pptx (docx v�
 
 ## Kiểm chứng
 
-Mọi quy tắc chính được chứng minh bằng cặp file mẫu good/bad trong [`samples/`](samples/)
-kèm output MarkItDown thật trong [`samples/output/`](samples/output/). Tái tạo:
+Mọi quy tắc (32/32) được chứng minh bằng cặp file mẫu với nhãn mã quy tắc inline trong chính nội dung good/bad trong [`samples/`](samples/)
+kèm output MarkItDown thật trong [`samples/output/`](samples/output/).  
+Mỗi phần tử trong sample Office mang nhãn inline (vd `[DOCX-01]`, `[vi phạm PPTX-01]`) để tra chéo nhanh giữa convention và bằng chứng.
+Tái tạo:
 
 ```bash
 python -m venv .venv

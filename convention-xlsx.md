@@ -95,7 +95,7 @@ pandas vẫn coi đây là giá trị khuyết và xuất ra `NaN` trong Markdow
 ### XLSX-09 — Hiểu rằng output là giá trị thô, không phải giá trị hiển thị `[NÊN]`
 
 **Tại sao:** converter lấy giá trị gốc, bỏ định dạng hiển thị: ngày ra
-`2026-07-03 00:00:00`, ô 15% ra `0.15`.
+`2026-07-03`, ô 15% ra `0.15`.
 
 ✅ **Đúng:** chấp nhận dạng thô; nếu bắt buộc cần dạng hiển thị đẹp, nhập dạng text.
 
@@ -110,15 +110,15 @@ trộn thành một bảng sai cấu trúc.
 
 ## Checklist trước khi nộp file Excel
 
-| ID | Quy tắc | Mức |
-|---|---|---|
-| XLSX-01 | 1 sheet = 1 bảng từ A1 | BẮT BUỘC |
-| XLSX-02 | Dòng 1 là header thật | BẮT BUỘC |
-| XLSX-03 | Không merge cell | BẮT BUỘC |
-| XLSX-04 | Công thức có cached value (save bằng Excel) | BẮT BUỘC |
-| XLSX-05 | Không giấu thông tin trong chart/màu/comment | BẮT BUỘC |
-| XLSX-06 | Đã xóa sheet nháp/ẩn | BẮT BUỘC |
-| XLSX-07 | Tên sheet có nghĩa | NÊN |
-| XLSX-08 | Không ô trống; không dùng N/A/NULL/None làm giá trị | NÊN |
-| XLSX-09 | Ý thức về giá trị thô (ngày, %) | NÊN |
-| XLSX-10 | Không nhiều bảng con trong 1 sheet | TRÁNH |
+| ID | Quy tắc | Mức | Sample |
+|---|---|---|---|---|
+| XLSX-01 | 1 sheet = 1 bảng từ A1 | BẮT BUỘC | good+bad |
+| XLSX-02 | Dòng 1 là header thật | BẮT BUỘC | good+bad |
+| XLSX-03 | Không merge cell | BẮT BUỘC | good+bad |
+| XLSX-04 | Công thức có cached value (save bằng Excel) | BẮT BUỘC | good+bad |
+| XLSX-05 | Không giấu thông tin trong chart/màu/comment | BẮT BUỘC | good+bad |
+| XLSX-06 | Đã xóa sheet nháp/ẩn | BẮT BUỘC | bad |
+| XLSX-07 | Tên sheet có nghĩa | NÊN | good+bad |
+| XLSX-08 | Không ô trống; không dùng N/A/NULL/None làm giá trị | NÊN | good+bad |
+| XLSX-09 | Ý thức về giá trị thô (ngày, %) | NÊN | good |
+| XLSX-10 | Không nhiều bảng con trong 1 sheet | TRÁNH | good+bad |
