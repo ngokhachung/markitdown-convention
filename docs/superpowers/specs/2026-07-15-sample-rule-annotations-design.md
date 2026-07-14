@@ -101,9 +101,26 @@ chỗ merge/lệch làm nhãn xô lệch — chính sự xô lệch đó là b�
 **Rủi ro:** Python hệ thống là 3.14.4 (rất mới) và chưa có venv. Nếu cài đặt vướng
 tương thích, dừng và báo người dùng thay vì loay hoay — không tự hạ cấp/bỏ qua verify.
 
+## Đính chính hành vi phát hiện khi làm sample (2026-07-15)
+
+Khi dựng sample DOCX-07/08, thực nghiệm (`probe_docx.py`) cho thấy convention mô tả
+SAI hành vi MarkItDown — người dùng quyết định **sửa convention theo thực nghiệm**:
+
+- **DOCX-07 (text box):** mammoth đọc VML text box (và nhánh VML Fallback trong
+  `mc:AlternateContent` — cách Word thật lưu text box) → chữ **KHÔNG mất** mà bị **dồn
+  ra cuối đoạn chứa nó** (rối thứ tự đọc). Chỉ text box DrawingML thuần (không có VML
+  fallback) mới mất hẳn. → sửa DOCX-07: "chữ sống sót nhưng sai thứ tự", đề xuất đổi
+  mức `[TRÁNH]`→`[NÊN]`.
+- **DOCX-08 (SmartArt/WordArt/shape):** shape/WordArt (có VML fallback) → chữ sống sót
+  như text box. Chỉ **SmartArt thật** (`dgm:`, chữ nằm trong part `diagrams/data*.xml`
+  mammoth không mở) mới mất toàn bộ chữ → giữ `[TRÁNH]`, thu hẹp về đúng SmartArt thật.
+  Demo mất chữ bằng đồ hoạ DrawingML không-fallback; SmartArt thật khó sinh bằng code
+  nên ghi chú trung thực.
+
 ## Không làm (non-goals)
 
-- Không sửa nội dung/ngữ nghĩa các quy tắc convention (chỉ thêm cột Sample + minh hoạ).
+- Không sửa ngữ nghĩa quy tắc **ngoài** DOCX-07/08 đã đính chính ở trên (các quy tắc
+  khác chỉ thêm cột Sample + minh hoạ).
 - Không bật LLM caption trong pipeline.
 - Không giả lập Excel tính lại công thức (openpyxl không cache được — đó chính là
   điều XLSX-04 dạy); file good ghi sẵn giá trị đã tính.
